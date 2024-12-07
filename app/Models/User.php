@@ -36,12 +36,6 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    // Attribut par défaut pour le rôle
-    protected $attributes = [
-        'role' => 'apprenant',
-        'status' => true,
-    ];
-
     /**
      * Get the attributes that should be cast.
      *

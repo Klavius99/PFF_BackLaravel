@@ -7,6 +7,9 @@ use App\Http\Controllers\Api\AdminManagementController;
 use App\Http\Controllers\Api\FormateurController;
 use App\Http\Controllers\Api\AuthorizedTrainerEmailController;
 use App\Http\Controllers\Api\PostController;
+use App\Http\Controllers\Api\UserSearchController;
+use App\Http\Controllers\Api\CommentController;
+use App\Http\Controllers\Api\LikeController;
 
 // Routes publiques d'authentification
 Route::post('/register', [AuthController::class, 'register']);
@@ -16,31 +19,40 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+    
+    // Route de recherche d'utilisateurs
+    Route::get('/users/search', [UserSearchController::class, 'search']);
 
     // Routes pour les posts
     Route::post('/posts', [PostController::class, 'store']);
     Route::get('/posts', [PostController::class, 'index']);
     Route::delete('/posts/{id}', [PostController::class, 'destroy']);
 
-    // Routes pour le super admin
-    Route::middleware('role:super_admin')->group(function () {
+    // Routes pour les commentaires
+    Route::get('/posts/{postId}/comments', [CommentController::class, 'index']);
+    Route::post('/posts/{postId}/comments', [CommentController::class, 'store']);
+    Route::delete('/posts/{postId}/comments/{commentId}', [CommentController::class, 'destroy']);
+
+    // Routes pour les likes
+    Route::post('/posts/{postId}/like', [LikeController::class, 'toggle']);
+    Route::get('/posts/{postId}/like/check', [LikeController::class, 'check']);
+    Route::get('/posts/{postId}/likes/count', [LikeController::class, 'count']);
+
+    // Routes pour l'admin
+    Route::middleware('role:admin')->group(function () {
         // Gestion des admin et info_manager
         Route::post('/admins', [AdminManagementController::class, 'createAdmin']);
         Route::get('/admins', [AdminManagementController::class, 'listAdmins']);
         Route::delete('/admins/{id}', [AdminManagementController::class, 'deleteAdmin']);
-    });
-
-    // Routes pour l'admin
-    Route::middleware('role:admin')->group(function () {
+        
         // Gestion des formateurs
         Route::get('/formateurs', [FormateurController::class, 'index']);
         Route::post('/formateurs', [FormateurController::class, 'store']);
-        Route::put('/formateurs/{id}', [FormateurController::class, 'update']);
         Route::delete('/formateurs/{id}', [FormateurController::class, 'destroy']);
-
-        // Routes pour la gestion des emails de formateurs (admin seulement)
-        Route::get('/trainer-emails', [AuthorizedTrainerEmailController::class, 'index']);
-        Route::post('/trainer-emails', [AuthorizedTrainerEmailController::class, 'store']);
-        Route::delete('/trainer-emails/{id}', [AuthorizedTrainerEmailController::class, 'destroy']);
+        
+        // Gestion des emails autorisés pour les formateurs
+        Route::get('/authorized-emails', [AuthorizedTrainerEmailController::class, 'index']);
+        Route::post('/authorized-emails', [AuthorizedTrainerEmailController::class, 'store']);
+        Route::delete('/authorized-emails/{id}', [AuthorizedTrainerEmailController::class, 'destroy']);
     });
 });

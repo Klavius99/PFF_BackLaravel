@@ -10,9 +10,9 @@ class AuthorizedTrainerEmailSeeder extends Seeder
     public function run()
     {
         $trainerEmails = [
-            'formateur1@isepdiamniadio.edu.sn',
-            'formateur2@isepdiamniadio.edu.sn',
-            'formateur3@isepdiamniadio.edu.sn',
+            'c.ndiaye4@isepdiamniadio.edu.sn',
+            'b.mandiang4@isepdiamniadio.edu.sn',
+            'm.der4@isepdiamniadio.edu.sn',
             // Ajoutez d'autres emails de formateurs ici
         ];
 

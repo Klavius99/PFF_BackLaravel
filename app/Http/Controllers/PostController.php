@@ -37,7 +37,7 @@ class PostController extends Controller
                 $image = $request->file('image');
                 $imageName = time() . '_' . $image->getClientOriginalName();
                 $image->storeAs('public/posts', $imageName);
-                $post->image_url = 'storage/posts/' . $imageName;
+                $post->image_url = config('app.url') . '/storage/posts/' . $imageName;
             }
 
             $post->save();

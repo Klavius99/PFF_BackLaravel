@@ -4,6 +4,11 @@
     </IfModule>
 
     RewriteEngine On
+    RewriteBase /
+    RewriteRule ^index\.php$ - [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /index.php [L]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
@@ -19,3 +24,25 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+<IfModule mod_php.c>
+    php_value upload_max_filesize 50M
+    php_value post_max_size 52M
+    php_value memory_limit 256M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+</IfModule>
+
+# Inclure la configuration personnalisée
+PHPINIDir "upload.ini"
+    
+# Augmenter les timeouts
+TimeOut 300
+    
+# Désactiver la compression pour les gros fichiers
+SetEnvIfNoCase Request_URI \.(mp4|mov|avi|mkv)$ no-gzip dont-vary
+
+# Autoriser les gros fichiers
+<Files *>
+    LimitRequestBody 524288000
+</Files>

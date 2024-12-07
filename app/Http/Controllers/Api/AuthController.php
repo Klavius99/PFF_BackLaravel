@@ -94,23 +94,56 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         try {
+            Log::info('Tentative de connexion', [
+                'email' => $request->email,
+                'ip' => $request->ip()
+            ]);
+            
             $validator = Validator::make($request->all(), [
                 'email' => 'required|email',
                 'password' => 'required',
             ]);
 
             if ($validator->fails()) {
+                Log::warning('Échec de la validation', [
+                    'errors' => $validator->errors(),
+                    'email' => $request->email
+                ]);
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            if (!Auth::attempt($request->only('email', 'password'))) {
+            // Vérifier si l'utilisateur existe
+            $user = User::where('email', $request->email)->first();
+            if (!$user) {
+                Log::warning('Utilisateur non trouvé', ['email' => $request->email]);
                 return response()->json([
                     'message' => 'Email ou mot de passe incorrect'
                 ], 401);
             }
 
-            $user = User::where('email', $request->email)->firstOrFail();
+            // Vérifier le mot de passe
+            if (!Hash::check($request->password, $user->password)) {
+                Log::warning('Mot de passe incorrect', ['email' => $request->email]);
+                return response()->json([
+                    'message' => 'Email ou mot de passe incorrect'
+                ], 401);
+            }
+
+            // Vérifier si le compte est actif
+            if (!$user->status) {
+                Log::warning('Compte inactif', ['email' => $request->email]);
+                return response()->json([
+                    'message' => 'Votre compte est désactivé'
+                ], 403);
+            }
+
             $token = $user->createToken('auth_token')->plainTextToken;
+
+            Log::info('Connexion réussie', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'role' => $user->role
+            ]);
 
             return response()->json([
                 'user' => $user,
@@ -119,14 +152,16 @@ class AuthController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Login error', [
+            Log::error('Erreur de connexion', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
-                'line' => $e->getLine()
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
             ]);
 
             return response()->json([
-                'message' => 'Une erreur est survenue lors de la connexion'
+                'message' => 'Une erreur est survenue lors de la connexion',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
